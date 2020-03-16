@@ -13,6 +13,7 @@ class LineaDeVenta extends Model
         'idusuario',
         'idarticulo',
         'idventa',
+        'cantidad',
         'subtotal_pesos',
         'subtotal_dolares',
         'subtotal_gramos_oro'

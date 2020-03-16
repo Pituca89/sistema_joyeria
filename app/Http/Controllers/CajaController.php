@@ -3,7 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-
+use App\LineaDeVenta;
+use DB;
 class CajaController extends Controller
 {
     /**
@@ -13,8 +14,28 @@ class CajaController extends Controller
      */
     public function index()
     {
-        //
-        return view('caja');
+        $fecha_caja = date('Y-m-d 00:00:00');
+
+        $pesos = DB::table('lineofsale')
+            ->join('sale','sale.id','=','lineofsale.idventa')
+            ->where('sale.fecha_venta','>=',$fecha_caja)
+            ->sum('subtotal_pesos');
+
+        $dolares = DB::table('lineofsale')
+            ->join('sale','sale.id','=','lineofsale.idventa')
+            ->where('sale.fecha_venta','>=',$fecha_caja)
+            ->sum('subtotal_dolares');
+
+        $oro = DB::table('lineofsale')
+            ->join('sale','sale.id','=','lineofsale.idventa')
+            ->where('sale.fecha_venta','>=',$fecha_caja)
+            ->sum('subtotal_gramos_oro');
+
+        return view('caja',[
+            'pesos' => $pesos,
+            'dolares' => $dolares,
+            'oro' => $oro
+            ]);
     }
 
     /**

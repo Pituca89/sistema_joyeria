@@ -8,6 +8,9 @@ use App\Articulo;
 use App\Imagen;
 use App\Precio;
 use App\Stock;
+use App\Material;
+use App\Proveedor;
+use App\Config;
 use DB;
 class IngresosController extends Controller
 {
@@ -28,7 +31,7 @@ class IngresosController extends Controller
                     ->join('stock','article.id','=','stock.articulo_id')
                     ->join('image','article.id','=','image.articulo_id')
                     ->where('article.id','=',session('id'))           
-                    ->select('article.id','nombre','codigo_barras','peso','valor_minimo','valor_actual','valor_compra','valor_venta','valor_oro','valor_peso','valor_dolar','image.path')
+                    ->select('article.id','nombre','codigo_barras','peso','valor_minimo','valor_actual','valor_compra','valor_venta','valor_oro','valor_peso','valor_dolar','image.path','material_id','provider_id')
                     ->get();
         }else{
             $articulos = DB::table('article')
@@ -38,11 +41,23 @@ class IngresosController extends Controller
                     ->join('image','article.id','=','image.articulo_id')
                     ->where('article.codigo_barras','like','%'.request('codbar').'%')
                     ->orWhere('article.nombre','like','%'.request('codbar').'%')
-                    ->select('article.id','nombre','codigo_barras','peso','valor_minimo','valor_actual','valor_compra','valor_venta','valor_oro','valor_peso','valor_dolar','image.path')
+                    ->select('article.id','nombre','codigo_barras','peso','valor_minimo','valor_actual','valor_compra','valor_venta','valor_oro','valor_peso','valor_dolar','image.path','material_id','provider_id')
                     ->get();
         }
+        $proveedor = Proveedor::all();
+        $material = Material::all();
+        $config = Config::first();
         $keys = collect(['nombre','precio','stock']);
-        return view('ingresos',['articulos'=>$articulos,'keys'=>$keys,'title'=>'Nuevo Articulo','modal' => $modal,'data'=> session('data')]);  
+        return view('ingresos',[
+            'proveedor'=>$proveedor,
+            'material'=>$material,
+            'articulos'=>$articulos,
+            'hechura'=>$config->hechura,
+            'keys'=>$keys,
+            'title'=>'Nuevo Articulo',
+            'modal' => $modal,
+            'data'=> session('data')]
+        );  
     }
 
     /**
@@ -64,14 +79,32 @@ class IngresosController extends Controller
      */
     public function store(Request $request)
     {
-        //
         $post = $request->all();
+        $name = "";
+        //$pesos = "";
+        //$dolar = "";
         if($file = $request->file('path')){
             $name = date('dmYHis').'-'.$file->getClientOriginalName();
             $file->move('img_articles',$name);
         }
+        $config = Config::where('name','like','%DOLAR%')->first();
         $articulo = Articulo::create($post);
-        $data = array_merge($post,['articulo_id' => $articulo->id, 'path' => 'img_articles/'.$name]);
+        /*
+        if($request->moneda == 'dolar'){
+            $pesos = $post['valor_dolar']*$config->valor;
+            $dolar = $post['valor_dolar'];
+        }else{
+            $dolar = $post['valor_pesos']/$config->valor;
+            $pesos = $post['valor_pesos'];
+        }
+        */
+        $data = array_merge(
+            $post,[
+                'articulo_id' => $articulo->id, 
+                'path' => 'img_articles/'.$name,
+                //'valor_venta' => $pesos,
+                //'valor_dolar' => $dolar
+                ]);
         $image = Imagen::create($data);
         $price = Precio::create($data);
         $stock = Stock::create($data);
@@ -105,6 +138,7 @@ class IngresosController extends Controller
     public function edit($id)
     {
         //
+        
     }
 
     /**
@@ -117,6 +151,39 @@ class IngresosController extends Controller
     public function update(Request $request, $id)
     {
         //
+        $config = Config::where('name','like','%DOLAR%')->first();
+        $articulo = Articulo::find($id);
+        $name = "";
+        if($file = $request->file('path')){
+            $name = date('dmYHis').'-'.$file->getClientOriginalName();
+            $file->move('img_articles',$name);
+                    
+        }
+        $imagen = Imagen::where('articulo_id',$articulo->id)->first();
+        $imagen->path = 'img_articles/'.$name;
+        $imagen->save();  
+        $stock = Stock::where('articulo_id',$articulo->id)->first();
+        $precio = Precio::where('articulo_id',$articulo->id)->first();
+        $articulo->codigo_barras = $request->codigo_barras;
+        $articulo->nombre = $request->nombre;
+        $articulo->peso = $request->peso;
+        $stock->valor_minimo = $request->valor_minimo;
+        $stock->valor_actual = $request->valor_actual;
+        $precio->valor_compra = $request->valor_compra;
+        if($request->moneda == 'dolar'){
+            $precio->valor_dolar = $request->valor_dolar;
+            $precio->valor_venta = $request->valor_dolar*$config->valor;
+        }else{
+            $precio->valor_dolar = $request->valor_pesos/$config->valor;
+            $precio->valor_venta = $request->valor_pesos;
+        }
+        
+        $articulo->save();
+        $stock->save();
+        $precio->save();
+
+        return back()->with('success','Articulo Actualizado');
+        
     }
 
     /**
@@ -128,5 +195,8 @@ class IngresosController extends Controller
     public function destroy($id)
     {
         //
+        Articulo::find($id)->delete();
+        return back()->with('success','Artículo eliminado correctamente');
     }
 }
+

@@ -23,6 +23,13 @@ Route::group(['middleware' => ['auth']], function () {
     Route::resource('caja', 'CajaController');
     Route::resource('/', 'HomeController');
     Route::resource('modal', 'ArticuloController');
+    Route::resource('config', 'ConfigController');
+    Route::resource('proveedor', 'ProveedorController');
+    Route::resource('material', 'MaterialController');
+    Route::post('rventa', 'VentaController@procesarVenta');
+    Route::get('menu_ingresos', function () {
+        return view('menu_ingresos');
+    });
 });
 Route::group(['middleware' => ['auth','admin']], function () {
     Route::resource('host', 'MaquinaController');

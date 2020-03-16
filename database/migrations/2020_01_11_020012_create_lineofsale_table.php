@@ -17,12 +17,13 @@ class CreateLineofsaleTable extends Migration
             $table->bigIncrements('id');
             $table->timestamps();
             $table->bigInteger('idusuario');
-            $table->bigInteger('idarticulo');
+            $table->bigInteger('idarticulo')->nullable();
             $table->bigInteger('idventa')->nullable();
+            $table->integer('cantidad');
             $table->double('subtotal_pesos');
             $table->double('subtotal_dolares');
             $table->double('subtotal_gramos_oro');
-            $table->foreign('idarticulo')->references('id')->on('article');
+            $table->foreign('idarticulo')->references('id')->on('article')->onDelete('cascade');
             $table->foreign('idventa')->references('id')->on('sale');
         });        
     }

@@ -8,4 +8,5 @@ class Proveedor extends Model
 {
     //
     protected $table = 'provider';
+    protected $fillable = ['cuit','nombre'];
 }

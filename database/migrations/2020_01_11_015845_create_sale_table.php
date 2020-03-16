@@ -20,6 +20,8 @@ class CreateSaleTable extends Migration
             $table->double('total_pesos');
             $table->double('total_dolares');
             $table->double('total_gramos_oro');
+            $table->integer('finalizada')->nullable();
+            $table->dateTime('fecha_venta')->nullable()->default(date('Y-m-d H:m:s'));
             $table->foreign('idusuario')->references('id')->on('users');
         });
         /*

@@ -8,7 +8,16 @@ class Articulo extends Model
 {
     //
     protected $table = 'article';
-    protected $fillable = ['codigo_barras','nombre','peso'];
+    protected $fillable = [
+        'codigo_barras',
+        'nombre',
+        'peso',
+        'item_id',
+        'brand_id',
+        'material_id',
+        'category_id',
+        'provider_id'
+    ];
     public function price(){
         return $this->hasOne('App\Precio');
     }

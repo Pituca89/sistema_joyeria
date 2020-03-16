@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateProviderTable extends Migration
+class CreateMaterialTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,13 +13,12 @@ class CreateProviderTable extends Migration
      */
     public function up()
     {
-        Schema::create('provider', function (Blueprint $table) {
+        Schema::create('material', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->timestamps();
-            $table->bigInteger('articulo_id');
-            $table->string('cuit');
-            $table->string('nombre');
-            $table->foreign('articulo_id')->references('id')->on('article');
+            $table->string('descripcion');
+            $table->double('precio', 15, 8)->nullable()->default(123.4567);
+            $table->boolean('hechura')->nullable()->default(false);
         });
     }
 
@@ -30,6 +29,6 @@ class CreateProviderTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('provider');
+        Schema::dropIfExists('material');
     }
 }

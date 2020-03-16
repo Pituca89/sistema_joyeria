@@ -16,9 +16,9 @@ class CreateImageTable extends Migration
         Schema::create('image', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->timestamps();
-            $table->bigInteger('articulo_id');
+            $table->bigInteger('articulo_id')->nullable();
             $table->string('path')->nullable();
-            $table->foreign('articulo_id')->references('id')->on('article');
+            $table->foreign('articulo_id')->references('id')->on('article')->onDelete('cascade');
         });
     }
 
@@ -29,6 +29,6 @@ class CreateImageTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('table_image');
+        Schema::dropIfExists('image');
     }
 }

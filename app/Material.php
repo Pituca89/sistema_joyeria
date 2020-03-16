@@ -8,4 +8,5 @@ class Material extends Model
 {
     //
     protected $table = 'material';
+    protected $fillable = ['descripcion','precio','hechura'];
 }

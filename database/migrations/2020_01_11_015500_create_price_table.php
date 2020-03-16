@@ -16,12 +16,12 @@ class CreatePriceTable extends Migration
         Schema::create('price', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->timestamps();
-            $table->bigInteger('articulo_id');
+            $table->bigInteger('articulo_id')->nullable();
             $table->double('valor_compra')->nullable();
             $table->double('valor_venta')->nullable();
             $table->double('valor_dolar')->nullable();
             $table->double('valor_oro')->nullable();
-            $table->foreign('articulo_id')->references('id')->on('article');
+            $table->foreign('articulo_id')->references('id')->on('article')->onDelete('cascade');
         });
     }
 

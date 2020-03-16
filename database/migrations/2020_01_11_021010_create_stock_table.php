@@ -16,10 +16,10 @@ class CreateStockTable extends Migration
         Schema::create('stock', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->timestamps();
-            $table->bigInteger('articulo_id');
+            $table->bigInteger('articulo_id')->nullable();
             $table->float('valor_minimo');
             $table->float('valor_actual');
-            $table->foreign('articulo_id')->references('id')->on('article');
+            $table->foreign('articulo_id')->references('id')->on('article')->onDelete('cascade');
         });
     }
 

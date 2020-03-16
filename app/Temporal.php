@@ -8,5 +8,14 @@ class Temporal extends Model
 {
     //
     protected $table = 'temporal';
-    protected $fillable = ['idarticulo','idusuario','nombre','precio','cantidad','subtotal'];
+    protected $fillable = [
+        'idarticulo',
+        'idusuario',
+        'nombre',
+        'precio',
+        'cantidad',
+        'subtotal_pesos',
+        'subtotal_dolares',
+        'subtotal_gramos_oro'
+    ];
 }

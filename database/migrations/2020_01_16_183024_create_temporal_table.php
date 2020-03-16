@@ -21,8 +21,12 @@ class CreateTemporalTable extends Migration
             $table->string('nombre');
             $table->float('precio');
             $table->float('cantidad');
-            $table->float('subtotal');
-            $table->foreign('idarticulo')->references('id')->on('article');
+            $table->float('subtotal_pesos');
+            $table->float('subtotal_dolares');
+            $table->float('subtotal_gramos_oro');
+            $table->bigInteger('idventa')->nullable();
+            $table->foreign('idarticulo')->references('id')->on('article')->onDelete('cascade');
+            $table->foreign('idventa')->references('id')->on('sale');
         });
     }
 

@@ -23,10 +23,16 @@ class VentaController extends Controller
      */
     public function index()
     {
+        $modal = 0;
+        $temporal = array();
+        if(session('modal') == 1){
+            $modal = 1;
+            $temporal = Temporal::find(session('id'));
+        }        
         $keys = collect(['nombre','precio','cantidad','subtotal']);
         $linea = Temporal::where('idusuario',Auth::id())->get();
-        $total = DB::table('temporal')->where('idusuario',Auth::id())->sum('subtotal');
-        return view('venta',['articulos'=>$linea,'keys'=>$keys,'total'=> $total]);             
+        $total = DB::table('temporal')->where('idusuario',Auth::id())->sum('subtotal_pesos');
+        return view('venta',['articulo_edit'=> $temporal,'temporales' => $linea,'keys' => $keys,'total' => $total,'modal' => $modal]);             
     }
 
     /**
@@ -36,17 +42,7 @@ class VentaController extends Controller
      */
     public function create(Request $request)
     {
-        /*
-        LineaDeVenta::create([
-            'idusuario' => Auth::id(),
-            'idarticulo' => $articulo['id'],
-            'subtotal_pesos' => $stock['valor_actual'] * $precio['valor_venta'],
-            'subtotal_dolares'=> $stock['valor_actual'] * $precio['valor_venta'],
-            'subtotal_gramos_oro' => $stock['valor_actual'] * $precio['valor_venta']
-        ]);
-        */
-       return view('venta');
-       
+       return view('venta');  
     }
 
     /**
@@ -69,7 +65,7 @@ class VentaController extends Controller
                 if($temporal->cantidad > $stock['valor_actual']){
                     return back()->with('error','Stock de '.$articulo[0]['nombre'].' insuficiente');
                 }
-                $temporal->subtotal = $temporal->cantidad * $temporal->precio;
+                $temporal->subtotal_pesos = $temporal->cantidad * $temporal->precio;
                 $temporal->save();
             }else{
                 Temporal::create([
@@ -78,7 +74,9 @@ class VentaController extends Controller
                     'nombre' => $articulo[0]['nombre'],
                     'precio' => $precio['valor_venta'],
                     'cantidad' => 1,
-                    'subtotal' => $precio['valor_venta'],
+                    'subtotal_pesos' => $precio['valor_venta'],
+                    'subtotal_dolares' => $precio['valor_dolar'],
+                    'subtotal_gramos_oro' => 0,
                 ]); 
             }                      
         }
@@ -94,6 +92,7 @@ class VentaController extends Controller
     public function show($id)
     {
         //
+        return redirect()->action('VentaController@index')->with(['modal' => 1 , 'id' => $id]);
     }
 
     /**
@@ -117,6 +116,16 @@ class VentaController extends Controller
     public function update(Request $request, $id)
     {
         //
+        $temporal = Temporal::find($id);
+        $stock = Stock::where('articulo_id',$temporal->idarticulo)->first();
+        if($request->cantidad > $stock->valor_actual){
+            return back()->with('error','Stock Insuficiente');
+        }
+        
+        $temporal->cantidad = $request->cantidad;
+        $temporal->subtotal_pesos = $request->cantidad * $temporal->precio;
+        $temporal->save();
+        return back();
     }
 
     /**
@@ -127,7 +136,32 @@ class VentaController extends Controller
      */
     public function destroy($id)
     {
-        Temporal::where('idusuario',$id)->delete();
-        return back()->with("success","Articulos eliminados correctamente");
+        if($id == 0){
+            Temporal::where('idusuario',Auth::id())->delete();
+            return back()->with("success","Articulos eliminados correctamente");
+        }else{
+            Temporal::find($id)->delete();
+            return back()->with("success","Articulo eliminados correctamente");
+        }
+        
+    }
+
+    public function procesarVenta(){
+
+        $venta = Venta::create([
+            'idusuario' => Auth::id(),
+            'total_pesos' => 0,
+            'total_dolares' => 0,
+            'total_gramos_oro' => 0,
+            'finalizada' => 0,
+            'fecha_venta' => date('Y-m-d H:m:s')
+        ]);
+        DB::table('temporal')->where('idusuario',Auth::id())->update(['idventa' => $venta->id]);
+        $temporal = Temporal::where('idusuario',Auth::id())->get();
+        foreach ($temporal as $value) {
+            LineaDeVenta::create($value->toArray());
+        }
+        Temporal::where('idusuario',Auth::id())->delete();
+        return back()->with('success','Venta procesada correctamente');
     }
 }
